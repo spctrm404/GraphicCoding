@@ -1,116 +1,134 @@
 class Ball {
+  pos = createVector(0, 0);
+  r;
+  fill;
+  mass;
+  vel = createVector(0, 0);
+  acc = createVector(0, 0);
+  offsetPos;
+
+  //debug
+  penetrationCorrectionVec = createVector(0, 0);
+
   constructor(x, y, diameter, options) {
-    this.pos = [x, y];
-    this.vel = options?.vel ? [...options.vel] : [0, 0];
-    this.acc = options?.acc ? [...options.acc] : [0, 0];
+    this.pos.set(x, y);
     this.r = 0.5 * diameter;
+    this.fill = options?.fill || color(255);
     this.mass =
       options?.mass || Math.PI * this.r ** 2 * (options?.density || 1);
-    this.damping = options?.damping || 0.5;
-    this.color = options?.color || "white";
-    this.isHovered = false;
-    this.isGrabbed = false;
-    this.offset = [0, 0];
+    if (options?.vel) this.vel.set(options.vel.x, options.vel.y);
   }
 
   applyGravity(gravity) {
-    if (this.isGrabbed) return;
-    this.acc = this.acc.map((aComp, idx) => aComp + gravity[idx]);
+    this.acc.add(gravity);
   }
-
   applyForce(force) {
-    if (this.isGrabbed) return;
-    this.acc = this.acc.map((aComp, idx) => aComp + force[idx] / this.mass);
+    this.acc.add(p5.Vector.div(force, this.mass));
   }
-
-  boundary() {
-    if (this.isGrabbed) return;
-    const [x, y] = this.pos;
-    if (x < this.r) {
-      this.pos[0] = this.r;
-      this.vel[0] *= -this.damping;
-    } else if (x > width - this.r) {
-      this.pos[0] = width - this.r;
-      this.vel[0] *= -this.damping;
-    }
-
-    // if (y < this.r) {
-    //   this.pos[1] = this.r;
-    //   this.vel[1] *= -this.damping;
-    // } else
-    if (y > height - this.r) {
-      this.pos[1] = height - this.r;
-      this.vel[1] *= -this.damping;
-    }
-  }
-
-  collide(other) {
-    const impactVec = this.pos.map((aComp, idx) => other.pos[idx] - aComp);
-    const dist = Math.hypot(...impactVec);
-    const minDist = this.r + other.r;
-    if (dist < minDist && dist > 0) {
-      const overlap = dist - minDist;
-      const normalImpactVec = impactVec.map((aComp) => aComp / dist);
-      const sumMass = this.mass + other.mass;
-      if (!this.isGrabbed) {
-        this.pos = this.pos.map(
-          (aComp, idx) =>
-            aComp + (normalImpactVec[idx] * overlap * other.mass) / sumMass
-        );
-      }
-      if (!other.isGrabbed) {
-        other.pos = other.pos.map(
-          (aComp, idx) =>
-            aComp - (normalImpactVec[idx] * overlap * this.mass) / sumMass
-        );
-      }
-
-      const minDistVec = normalImpactVec.map((aComp) => aComp * minDist);
-      const vecDiff = this.vel.map((aComp, idx) => other.vel[idx] - aComp);
-      const num = vecDiff[0] * minDistVec[0] + vecDiff[1] * minDistVec[1];
-      const den = sumMass * minDist ** 2;
-      if (!this.isGrabbed) {
-        const forceThis = minDistVec.map(
-          (aComp) => (aComp * 2 * other.mass * num) / den
-        );
-        this.vel = this.vel.map((aComp, idx) => aComp + forceThis[idx]);
-      }
-      if (!other.isGrabbed) {
-        const forceOther = minDistVec.map(
-          (aComp) => (aComp * 2 * this.mass * num) / den
-        );
-        other.vel = other.vel.map((aComp, idx) => aComp - forceOther[idx]);
-      }
-    }
-  }
-
-  isHover(mouse) {
-    const [mx, my] = mouse;
-    const [x, y] = this.pos;
-    const distSq = (mx - x) ** 2 + (my - y) ** 2;
-    return distSq < this.r ** 2;
-  }
-
-  setGrabbed(mouse) {
-    this.isGrabbed = mouse ? true : false;
-    if (this.isGrabbed) {
-      this.vel = [0, 0];
-      this.acc = [0, 0];
-      this.offset = this.pos.map((aComp, idx) => mouse[idx] - aComp);
-    }
-  }
-
   update() {
-    if (this.isGrabbed) return;
-    this.vel = this.vel.map((aComp, idx) => aComp + this.acc[idx]);
-    this.pos = this.pos.map((aComp, idx) => aComp + this.vel[idx]);
-    this.acc = [0, 0];
+    this.vel.add(this.acc);
+    this.pos.add(this.vel);
+    this.acc.set(0, 0);
   }
 
-  render() {
-    const [x, y] = this.pos;
+  resolveWallCollision(restitution = 1, iterLimit = 10) {
+    const isOut = () => {
+      return (
+        this.pos.x < this.r ||
+        this.pos.x > width - this.r ||
+        this.pos.y > height - this.r
+      );
+    };
+    const resolve = () => {
+      if (this.pos.x < this.r) {
+        const penetration = this.r - this.pos.x;
+        this.pos.x = this.r + restitution * penetration;
+        this.vel.x *= -restitution;
+      }
+      if (this.pos.x > width - this.r) {
+        const penetration = width - this.r - this.pos.x;
+        this.pos.x = width - this.r + restitution * penetration;
+        this.vel.x *= -restitution;
+      }
+      if (this.pos.y > height - this.r) {
+        const penetration = height - this.r - this.pos.y;
+        this.pos.y = height - this.r + restitution * penetration;
+        this.vel.y *= -restitution;
+      }
+    };
+
+    for (let iter = 0; iter < iterLimit; iter++) {
+      if (!isOut()) break;
+      resolve();
+    }
+  }
+
+  isOverlapped(other) {
+    const minDistSq = (this.r + other.r) ** 2;
+    const fromThisToOtherVec = p5.Vector.sub(other.pos, this.pos);
+    const distSq = fromThisToOtherVec.magSq();
+    return distSq < minDistSq;
+  }
+
+  resolveBallCollision(other) {
+    const minDist = this.r + other.r;
+    const fromThisToOtherVec = p5.Vector.sub(other.pos, this.pos);
+    const dist = fromThisToOtherVec.mag();
+    console.log(dist, minDist);
+    if (dist >= minDist) return;
+
+    // solve penetration
+    const sumInvMass = this.mass ** -1 + other.mass ** -1;
+    const penetration = minDist - dist;
+    const penetrationCorrectionVec = fromThisToOtherVec
+      .copy()
+      .setMag(penetration)
+      .mult(-1);
+    this.pos.add(
+      penetrationCorrectionVec.copy().mult(this.mass ** -1 / sumInvMass)
+    );
+    other.pos.sub(
+      penetrationCorrectionVec.copy().mult(other.mass ** -1 / sumInvMass)
+    );
+    if (DEBUG) {
+      this.penetrationCorrectionVec = penetrationCorrectionVec
+        .copy()
+        .mult(this.mass ** -1 / sumInvMass);
+      other.penetrationCorrectionVec = penetrationCorrectionVec
+        .copy()
+        .mult(other.mass ** -1 / sumInvMass)
+        .mult(-1);
+    }
+
+    // solve velocity
+    // get angle of each ball`s velocity vector relative to the collision normal
+    const collisionNormal = fromThisToOtherVec.copy().normalize();
+    const thisVelAngle = this.vel.angleBetween(collisionNormal);
+    const otherVelAngle = other.vel.angleBetween(collisionNormal);
+    // find new velocity based on angle we found
+  }
+
+  show() {
+    push();
+    fill(this.fill);
     noStroke();
-    fill(this.isGrabbed ? "red" : this.isHovered ? "blue" : this.color);
-    circle(x, y, 2 * this.r);
+    circle(this.pos.x, this.pos.y, this.r * 2);
+    if (DEBUG) {
+      stroke('#00ff00');
+      line(
+        this.pos.x,
+        this.pos.y,
+        this.pos.x + this.vel.x,
+        this.pos.y + this.vel.y
+      );
+      stroke('#ff0000');
+      line(
+        this.pos.x,
+        this.pos.y,
+        this.pos.x + this.penetrationCorrectionVec.x,
+        this.pos.y + this.penetrationCorrectionVec.y
+      );
+    }
+    pop();
   }
 }
