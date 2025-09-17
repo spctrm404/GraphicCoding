@@ -1,15 +1,14 @@
-let chain;
+let links;
 
 function setup() {
   createCanvas(800, 600);
 
-  chain = new Chain([width / 2, height / 2], 12, 64, Math.PI / 8);
+  links = new Links(100, height / 2, 30, 20);
 }
 
 function draw() {
-  chain.moveTo(createVector(mouseX, mouseY));
-
   background(0);
-
-  chain.show();
+  links.moveHead(mouseX, mouseY);
+  links.constrain();
+  links.show();
 }

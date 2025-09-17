@@ -1,0 +1,53 @@
+class Link {
+  beginNode = null;
+  endNode = null;
+  length;
+  angle = (15 / 90) * Math.PI;
+
+  constructor(beginNode, endNode, length, angle) {
+    this.beginNode = beginNode;
+    this.endNode = endNode;
+    this.length = length;
+    if (angle) this.angle = angle;
+  }
+
+  get toBeginVec() {
+    return p5.Vector.sub(this.beginNode.pos, this.endNode.pos);
+  }
+  get toEndVec() {
+    return p5.Vector.sub(this.endNode.pos, this.beginNode.pos);
+  }
+
+  constrain(prevLink) {
+    const headToTailVec = p5.Vector.sub(this.endNode.pos, this.beginNode.pos);
+    const newTailPos = p5.Vector.setMag(headToTailVec, this.length).add(
+      this.beginNode.pos
+    );
+    this.endNode.pos.set(newTailPos);
+    if (prevLink) {
+      const currAngle = prevLink.toEndVec.angleBetween(headToTailVec);
+      const unsignedCurrAngle = Math.abs(currAngle);
+      if (unsignedCurrAngle > this.angle) {
+        const sign = currAngle > 0 ? 1 : -1;
+        const angleDiff = sign * (unsignedCurrAngle - this.angle);
+        const newTailPos = p5.Vector.rotate(headToTailVec, -angleDiff)
+          .setMag(this.length)
+          .add(this.beginNode.pos);
+        this.endNode.pos.set(newTailPos);
+      }
+    }
+  }
+
+  show() {
+    push();
+    stroke(255);
+    noFill();
+    line(
+      this.beginNode.pos.x,
+      this.beginNode.pos.y,
+      this.endNode.pos.x,
+      this.endNode.pos.y
+    );
+    pop();
+  }
+}
