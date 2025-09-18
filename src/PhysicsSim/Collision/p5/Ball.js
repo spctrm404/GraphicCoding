@@ -4,7 +4,6 @@ class Ball {
   fill = 0;
   mass;
   vel = createVector(0, 0);
-  acc = createVector(0, 0);
   isGrabbed = false;
   offsetPos = createVector(0, 0);
 
@@ -15,61 +14,12 @@ class Ball {
     if (options?.mass) this.mass = options.mass;
     else this.mass = Math.PI * this.r ** 2 * (options?.density || 1);
     if (options?.vel) this.vel.set(options.vel.x, options.vel.y);
-    if (options?.acc) this.acc.set(options.acc.x, options.acc.y);
   }
 
-  applyGravity(gravity) {
-    this.acc.add(gravity);
-  }
-  applyForce(force) {
-    this.acc.add(p5.Vector.div(force, this.mass));
-  }
   update() {
     if (this.isGrabbed) return;
 
-    this.vel.add(this.acc);
     this.pos.add(this.vel);
-    this.acc.set(0, 0);
-  }
-
-  resolveWallCollision(restitution = 1, maxAttempts = 10) {
-    const isOut = () => {
-      return (
-        this.pos.x < this.r ||
-        this.pos.x > width - this.r ||
-        this.pos.y > height - this.r
-      );
-    };
-    const resolve = () => {
-      if (this.pos.x < this.r) {
-        const penetration = this.r - this.pos.x;
-        this.pos.x = this.r + restitution * penetration;
-        this.vel.x *= -restitution;
-      }
-      if (this.pos.x > width - this.r) {
-        const penetration = width - this.r - this.pos.x;
-        this.pos.x = width - this.r + restitution * penetration;
-        this.vel.x *= -restitution;
-      }
-      if (this.pos.y > height - this.r) {
-        const penetration = height - this.r - this.pos.y;
-        this.pos.y = height - this.r + restitution * penetration;
-        this.vel.y *= -restitution;
-      }
-    };
-    let attempts = 0;
-    do {
-      attempts++;
-      if (attempts > maxAttempts) break;
-      resolve();
-    } while (isOut());
-  }
-
-  isOverlapped(other) {
-    const minDistSq = (this.r + other.r) ** 2;
-    const toOtherVec = p5.Vector.sub(other.pos, this.pos);
-    const distSq = toOtherVec.magSq();
-    return distSq < minDistSq;
   }
 
   resolveBallCollision(other) {
@@ -99,8 +49,25 @@ class Ball {
       otherCorrectionMult
     );
 
-    if (!this.isGrabbed) this.pos.add(thisCorrectionVec);
-    if (!other.isGrabbed) other.pos.add(otherCorrectionVec);
+    push();
+    stroke('#00FFFF');
+    strokeWeight(4);
+    line(
+      this.pos.x,
+      this.pos.y,
+      this.pos.x + thisCorrectionVec.x,
+      this.pos.y + thisCorrectionVec.y
+    );
+    line(
+      other.pos.x,
+      other.pos.y,
+      other.pos.x + otherCorrectionVec.x,
+      other.pos.y + otherCorrectionVec.y
+    );
+    pop();
+
+    // if (!this.isGrabbed) this.pos.add(thisCorrectionVec);
+    // if (!other.isGrabbed) other.pos.add(otherCorrectionVec);
 
     // solve velocity
     const vx1ref = fromThisToOtherNormVec.dot(this.vel);
@@ -116,15 +83,77 @@ class Ball {
     const vy1Ref = tangentVec.dot(this.vel);
     const vy2Ref = tangentVec.dot(other.vel);
 
+    const thisVxRefBeforeVec = p5.Vector.mult(fromThisToOtherNormVec, vx1ref);
+    const otherVxRefBeforeVec = p5.Vector.mult(fromThisToOtherNormVec, vx2ref);
+
     const thisVxRefVec = p5.Vector.mult(fromThisToOtherNormVec, vx1refAfter);
     const otherVxRefVec = p5.Vector.mult(fromThisToOtherNormVec, vx2refAfter);
 
     const thisVyRefVec = p5.Vector.mult(tangentVec, vy1Ref);
     const otherVyRefVec = p5.Vector.mult(tangentVec, vy2Ref);
 
-    if (!this.isGrabbed) this.vel = p5.Vector.add(thisVxRefVec, thisVyRefVec);
-    if (!other.isGrabbed)
-      other.vel = p5.Vector.add(otherVxRefVec, otherVyRefVec);
+    const thisVelAfter = p5.Vector.add(thisVxRefVec, thisVyRefVec);
+    const otherVelAfter = p5.Vector.add(otherVxRefVec, otherVyRefVec);
+
+    // if (!this.isGrabbed) this.vel = p5.Vector.add(thisVxRefVec, thisVyRefVec);
+    // if (!other.isGrabbed)
+    //   other.vel = p5.Vector.add(otherVxRefVec, otherVyRefVec);
+
+    push();
+    stroke('#ffff00');
+    line(
+      this.pos.x,
+      this.pos.y,
+      this.pos.x + thisVxRefBeforeVec.x,
+      this.pos.y + thisVxRefBeforeVec.y
+    );
+    line(
+      other.pos.x,
+      other.pos.y,
+      other.pos.x + otherVxRefBeforeVec.x,
+      other.pos.y + otherVxRefBeforeVec.y
+    );
+    stroke('#FF0000');
+    line(
+      this.pos.x,
+      this.pos.y,
+      this.pos.x + thisVxRefVec.x,
+      this.pos.y + thisVxRefVec.y
+    );
+    line(
+      other.pos.x,
+      other.pos.y,
+      other.pos.x + otherVxRefVec.x,
+      other.pos.y + otherVxRefVec.y
+    );
+    stroke('#0000FF');
+    line(
+      this.pos.x,
+      this.pos.y,
+      this.pos.x + thisVyRefVec.x,
+      this.pos.y + thisVyRefVec.y
+    );
+    line(
+      other.pos.x,
+      other.pos.y,
+      other.pos.x + otherVyRefVec.x,
+      other.pos.y + otherVyRefVec.y
+    );
+    stroke('#00FF00');
+    strokeWeight(2);
+    line(
+      this.pos.x,
+      this.pos.y,
+      this.pos.x + thisVelAfter.x,
+      this.pos.y + thisVelAfter.y
+    );
+    line(
+      other.pos.x,
+      other.pos.y,
+      other.pos.x + otherVelAfter.x,
+      other.pos.y + otherVelAfter.y
+    );
+    pop();
   }
 
   isHovered(mouse) {
@@ -137,8 +166,6 @@ class Ball {
   onGrab(mouse) {
     this.isGrabbed = true;
     this.offsetPos = p5.Vector.sub(this.pos, mouse);
-    this.vel.set(0, 0);
-    this.acc.set(0, 0);
   }
 
   onDrag(mouse) {
@@ -150,21 +177,29 @@ class Ball {
   onRelease(vel) {
     if (!this.isGrabbed) return;
 
-    this.vel.set(vel);
-    this.acc.set(0, 0);
     this.isGrabbed = false;
   }
 
   show(isHovered) {
     push();
     if (isHovered) {
-      stroke(this.fill);
+      stroke('#FF0000');
       noFill();
     } else {
-      fill(this.fill);
-      noStroke();
+      stroke(this.fill);
+      noFill();
     }
     circle(this.pos.x, this.pos.y, this.r * 2);
+    if (DEBUG) {
+      stroke('#00FF00');
+      noFill();
+      line(
+        this.pos.x,
+        this.pos.y,
+        this.pos.x + this.vel.x,
+        this.pos.y + this.vel.y
+      );
+    }
     pop();
   }
 }
