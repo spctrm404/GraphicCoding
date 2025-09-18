@@ -18,7 +18,7 @@ class Link {
     return p5.Vector.sub(this.endNode.pos, this.beginNode.pos);
   }
 
-  constrain(prevLink) {
+  resolve(prevLink) {
     const headToTailVec = p5.Vector.sub(this.endNode.pos, this.beginNode.pos);
     const newTailPos = p5.Vector.setMag(headToTailVec, this.length).add(
       this.beginNode.pos
@@ -30,10 +30,30 @@ class Link {
       if (unsignedCurrAngle > this.angle) {
         const sign = currAngle > 0 ? 1 : -1;
         const angleDiff = sign * (unsignedCurrAngle - this.angle);
-        const newTailPos = p5.Vector.rotate(headToTailVec, -angleDiff)
+        const newEndPos = p5.Vector.rotate(headToTailVec, -angleDiff)
           .setMag(this.length)
           .add(this.beginNode.pos);
-        this.endNode.pos.set(newTailPos);
+        this.endNode.pos.set(newEndPos);
+      }
+    }
+  }
+
+  reverseResolve(nextLink) {
+    const tailToHeadVec = p5.Vector.sub(this.beginNode.pos, this.endNode.pos);
+    const newHeadPos = p5.Vector.setMag(tailToHeadVec, this.length).add(
+      this.endNode.pos
+    );
+    this.beginNode.pos.set(newHeadPos);
+    if (nextLink) {
+      const currAngle = nextLink.toBeginVec.angleBetween(tailToHeadVec);
+      const unsignedCurrAngle = Math.abs(currAngle);
+      if (unsignedCurrAngle > this.angle) {
+        const sign = currAngle > 0 ? 1 : -1;
+        const angleDiff = sign * (unsignedCurrAngle - this.angle);
+        const newBeginPos = p5.Vector.rotate(tailToHeadVec, -angleDiff)
+          .setMag(this.length)
+          .add(this.endNode.pos);
+        this.beginNode.pos.set(newBeginPos);
       }
     }
   }
