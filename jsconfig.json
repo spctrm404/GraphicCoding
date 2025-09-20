@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6"
+    "target": "esnext"
   },
-  "include": [
-    "*.js",
-    "**/*.js",
-    "/Users/spctrm404/.vscode/extensions/samplavigne.p5-vscode-1.2.16/p5types/global.d.ts"
-  ]
+  "include": ["*.js", "**/*.js", "./types/p5types/global.d.ts"]
 }
