@@ -1,10 +1,10 @@
 class Node {
   pos = createVector(0, 0);
-  fill = color(255);
+  fill;
 
   constructor(x, y, options) {
     this.pos.set(x, y);
-    if (options?.fill) this.fill = options.fill;
+    this.fill = options?.fill || color(255);
   }
 
   show() {

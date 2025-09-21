@@ -3,7 +3,7 @@ class Links {
   links = [];
   head = null;
   tail = null;
-  constructor(x, y, cnt, length, angle) {
+  constructor(x, y, cnt = 2, length = 20, angle = (15 / 180) * Math.PI) {
     this.head = new Node(x, y, { fill: color(255, 0, 0) });
     this.nodes.push(this.head);
     for (let n = 1; n < cnt; n++) {
@@ -42,13 +42,15 @@ class Links {
   fabrikResolve() {
     const prevTailPos = this.tail.pos.copy();
     for (let idx = 0; idx < this.links.length; idx++) {
-      this.links[idx].resolve(idx !== 0 && this.links[idx - 1]);
+      // this.links[idx].resolve(idx !== 0 && this.links[idx - 1]);
+      this.links[idx].resolve();
     }
     this.moveTail(prevTailPos.x, prevTailPos.y);
     for (let idx = this.links.length - 1; idx >= 0; idx--) {
-      this.links[idx].reverseResolve(
-        idx !== this.links.length - 1 && this.links[idx + 1]
-      );
+      // this.links[idx].reverseResolve(
+      //   idx !== this.links.length - 1 && this.links[idx + 1]
+      // );
+      this.links[idx].reverseResolve();
     }
   }
 

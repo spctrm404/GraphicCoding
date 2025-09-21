@@ -2,9 +2,9 @@ class Link {
   beginNode = null;
   endNode = null;
   length;
-  angle = (15 / 90) * Math.PI;
+  angle;
 
-  constructor(beginNode, endNode, length, angle) {
+  constructor(beginNode, endNode, length = 20, angle = (15 / 180) * Math.PI) {
     this.beginNode = beginNode;
     this.endNode = endNode;
     this.length = length;
