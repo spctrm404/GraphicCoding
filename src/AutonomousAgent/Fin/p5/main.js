@@ -3,38 +3,39 @@ let mouse;
 const shoulders = [];
 const armStep = [];
 const arms = [];
-let dist = 50;
+let dist = 90;
 
 function setup() {
   createCanvas(800, 600);
 
-  body = new Links(width / 2, height / 2, 30);
+  body = new Links(width / 2, height / 2, 20, 20, (15 / 180) * Math.PI);
   shoulders.push(createVector(0, 0));
   shoulders.push(createVector(0, 0));
   armStep.push(createVector(0, 0));
   armStep.push(createVector(0, 0));
   calculateShoulders();
-  arms.push(new Links(shoulders[0].x, shoulders[0].y, 15, 5));
-  arms.push(new Links(shoulders[1].x, shoulders[1].y, 15, 5));
+  arms.push(new Links(shoulders[0].x, shoulders[0].y, 4, 30));
+  arms.push(new Links(shoulders[1].x, shoulders[1].y, 4, 30));
 
   mouse = createVector(0, 0);
 }
 
 function calculateShoulders() {
-  const toHeadVec = body.links[10].toBeginVec;
+  const core = body.links[5];
+  const toHeadVec = body.links[5].toBeginVec;
   const leftShoulderPos = p5.Vector.rotate(toHeadVec, -Math.PI / 2)
     .setMag(20)
-    .add(body.links[10].endNode.pos);
+    .add(core.endNode.pos);
   const rightShoulderPos = p5.Vector.rotate(toHeadVec, Math.PI / 2)
     .setMag(20)
-    .add(body.links[10].endNode.pos);
+    .add(core.endNode.pos);
   shoulders[0].set(leftShoulderPos);
   shoulders[1].set(rightShoulderPos);
-  const leftStepPos = p5.Vector.rotate(toHeadVec, (-15 / 180) * Math.PI)
-    .setMag(50)
+  const leftStepPos = p5.Vector.rotate(toHeadVec, (-30 / 180) * Math.PI)
+    .setMag(80)
     .add(shoulders[0]);
-  const rightStepPos = p5.Vector.rotate(toHeadVec, (15 / 180) * Math.PI)
-    .setMag(50)
+  const rightStepPos = p5.Vector.rotate(toHeadVec, (30 / 180) * Math.PI)
+    .setMag(80)
     .add(shoulders[1]);
   armStep[0].set(leftStepPos);
   armStep[1].set(rightStepPos);

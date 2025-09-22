@@ -3,7 +3,7 @@ class Links {
   links = [];
   head = null;
   tail = null;
-  constructor(x, y, cnt = 2, length = 20, angle = (15 / 180) * Math.PI) {
+  constructor(x, y, cnt = 2, length = 20, angle = undefined) {
     this.head = new Node(x, y, { fill: color(255, 0, 0) });
     this.nodes.push(this.head);
     for (let n = 1; n < cnt; n++) {

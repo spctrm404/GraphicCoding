@@ -2,9 +2,9 @@ class Link {
   beginNode = null;
   endNode = null;
   length;
-  angle;
+  angle = undefined;
 
-  constructor(beginNode, endNode, length = 20, angle = (15 / 180) * Math.PI) {
+  constructor(beginNode, endNode, length = 20, angle = undefined) {
     this.beginNode = beginNode;
     this.endNode = endNode;
     this.length = length;
@@ -24,7 +24,7 @@ class Link {
       this.beginNode.pos
     );
     this.endNode.pos.set(newTailPos);
-    if (prevLink) {
+    if (prevLink && this.angle !== undefined) {
       const currAngle = prevLink.toEndVec.angleBetween(headToTailVec);
       const unsignedCurrAngle = Math.abs(currAngle);
       if (unsignedCurrAngle > this.angle) {
@@ -44,7 +44,7 @@ class Link {
       this.endNode.pos
     );
     this.beginNode.pos.set(newHeadPos);
-    if (nextLink) {
+    if (nextLink && this.angle !== undefined) {
       const currAngle = nextLink.toBeginVec.angleBetween(tailToHeadVec);
       const unsignedCurrAngle = Math.abs(currAngle);
       if (unsignedCurrAngle > this.angle) {
