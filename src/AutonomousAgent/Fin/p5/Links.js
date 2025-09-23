@@ -1,20 +1,26 @@
 class Links {
   nodes = [];
   links = [];
-  head = null;
-  tail = null;
-  constructor(x, y, cnt = 2, length = 20, angle = undefined) {
+  head;
+  tail;
+  constructor(x, y, cnt = 2, distConstraint = 20, angleConstraint = null) {
     this.head = new Node(x, y, { fill: color(255, 0, 0) });
     this.nodes.push(this.head);
     for (let n = 1; n < cnt; n++) {
       const prevNode = this.nodes[n - 1];
-      this.nodes.push(
-        new Node(x, prevNode.pos.y + length, {
-          fill: color(255 * (1 - n / (cnt - 1)), (255 * n) / (cnt - 1), 0),
-        })
+      const newNode = new Node(x, prevNode.pos.y + distConstraint, {
+        fill: color(255 * (1 - n / (cnt - 1)), (255 * n) / (cnt - 1), 0),
+      });
+      this.nodes.push(newNode);
+      this.links.push(
+        new Link(prevNode, newNode, distConstraint, angleConstraint)
       );
-      this.links.push(new Link(prevNode, this.nodes[n], length, angle));
     }
+    this.links.forEach((aLink, idx) => {
+      aLink.prevLink = idx !== 0 ? this.links[idx - 1] : null;
+      aLink.nextLink =
+        idx !== this.links.length - 1 ? this.links[idx + 1] : null;
+    });
     this.tail = this.nodes[this.nodes.length - 1];
   }
 
@@ -28,7 +34,7 @@ class Links {
 
   resolve() {
     this.links.forEach((aLink, idx) => {
-      aLink.resolve(idx !== 0 && this.links[idx - 1]);
+      aLink.resolve();
     });
   }
   reverseResolve() {
