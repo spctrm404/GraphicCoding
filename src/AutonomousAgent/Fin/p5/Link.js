@@ -1,77 +1,84 @@
 class Link {
-  beginNode;
-  endNode;
+  head;
+  tail;
   distConstraint;
+  angleConstraint;
   prevLink = null;
   nextLink = null;
-  angleConstraint;
 
-  constructor(beginNode, endNode, distConstraint = 20, angleConstraint = null) {
-    this.beginNode = beginNode;
-    this.endNode = endNode;
+  constructor(head, tail, distConstraint = 20, angleConstraint = null) {
+    this.head = head;
+    this.tail = tail;
     this.distConstraint = distConstraint;
     this.angleConstraint = angleConstraint;
   }
 
-  positivizeAngle(angle) {
-    let positivizeAngle = angle;
-    while (positivizeAngle < 0) {
-      positivizeAngle += 2 * Math.PI;
-    }
-    positivizeAngle = positivizeAngle % (2 * Math.PI);
-    return positivizeAngle;
+  set prevLink(aLink) {
+    if (aLink) this.prevLink = aLink;
+  }
+  set nextLink(aLink) {
+    if (aLink) this.nextLink = aLink;
   }
 
-  get toBeginVec() {
-    return p5.Vector.sub(this.beginNode.pos, this.endNode.pos);
+  get toHeadVec() {
+    return p5.Vector.sub(this.head.pos, this.tail.pos);
   }
-  get toEndVec() {
-    return p5.Vector.sub(this.endNode.pos, this.beginNode.pos);
+  get toTailVec() {
+    return p5.Vector.sub(this.tail.pos, this.head.pos);
   }
 
   resolve() {
-    const newEndPos = p5.Vector.setMag(this.toEndVec, this.distConstraint).add(
-      this.beginNode.pos
-    );
-    this.endNode.pos.set(newEndPos);
+    const newTailPos = p5.Vector.setMag(
+      this.toTailVec,
+      this.distConstraint
+    ).add(this.head.pos);
+    this.tail.pos.set(newTailPos);
     if (this.prevLink && this.angleConstraint) {
-      let {
-        from: angleConstraintFrom,
-        to: angleConstraintTo,
-        dir: angleConstraintDir,
+      const {
+        from: angleFrom,
+        to: angleTo,
+        dir: angleDir,
       } = this.angleConstraint;
-      const prevHeading = this.prevLink.toBeginVec.heading();
-      const currHeading = this.toEndVec.heading();
-      angleConstraintFrom = this.positivizeAngle(angleConstraintFrom);
-      angleConstraintTo = this.positivizeAngle(angleConstraintTo);
-      const currAngle = this.positivizeAngle(currHeading - prevHeading);
+      const positivizedAngleFrom = positivizeAngle(angleFrom);
+      const positivizedAngleTo = positivizeAngle(angleTo);
+      const prevLinkToHeadVec = this.prevLink.toHeadVec;
+      const prevLinkToHeadHeading = prevLinkToHeadVec.heading();
+      const toTailHeading = this.toTailVec.heading();
+      const positivizedCurrAngle = positivizeAngle(
+        toTailHeading - prevLinkToHeadHeading
+      );
       const isAngleInRange = (angle, from, to) => {
         return from <= to
           ? angle >= from && angle <= to
           : angle >= from || angle <= to;
       };
       let isWithinConstraint =
-        angleConstraintDir === "cw"
-          ? isAngleInRange(currAngle, angleConstraintFrom, angleConstraintTo)
-          : isAngleInRange(currAngle, angleConstraintTo, angleConstraintFrom);
+        angleDir === 'cw'
+          ? isAngleInRange(
+              positivizedCurrAngle,
+              positivizedAngleFrom,
+              positivizedAngleTo
+            )
+          : isAngleInRange(
+              positivizedCurrAngle,
+              positivizedAngleTo,
+              positivizedAngleFrom
+            );
       if (!isWithinConstraint) {
-        const angleDiff = (a, b) => {
-          let diff = Math.abs(a - b) % (2 * Math.PI);
-          return diff > Math.PI ? 2 * Math.PI - diff : diff;
-        };
         const refA =
-          angleConstraintDir === "cw" ? angleConstraintFrom : angleConstraintTo;
+          angleDir === 'cw' ? positivizedAngleFrom : positivizedAngleTo;
         const refB =
-          angleConstraintDir === "cw" ? angleConstraintTo : angleConstraintFrom;
-        const diffA = angleDiff(currAngle, refA);
-        const diffB = angleDiff(currAngle, refB);
-        const nearestConstraintAngle = diffA < diffB ? refA : refB;
-        const newEndHeading = prevHeading + nearestConstraintAngle;
-        const newEndPos = p5.Vector.fromAngle(
-          newEndHeading,
+          angleDir === 'cw' ? positivizedAngleTo : positivizedAngleFrom;
+        const diffA = angleDiff(positivizedCurrAngle, refA);
+        const diffB = angleDiff(positivizedCurrAngle, refB);
+        const closestConstraintAngle = diffA < diffB ? refA : refB;
+        const newTailHeading =
+          prevLinkToHeadVec.heading() + closestConstraintAngle;
+        const newTailPos = p5.Vector.fromAngle(
+          newTailHeading,
           this.distConstraint
-        ).add(this.beginNode.pos);
-        this.endNode.pos.set(newEndPos);
+        ).add(this.head.pos);
+        this.tail.pos.set(newTailPos);
       }
     }
   }
@@ -80,14 +87,9 @@ class Link {
     push();
     stroke(255);
     noFill();
-    line(
-      this.beginNode.pos.x,
-      this.beginNode.pos.y,
-      this.endNode.pos.x,
-      this.endNode.pos.y
-    );
+    line(this.head.pos.x, this.head.pos.y, this.tail.pos.x, this.tail.pos.y);
     if (this.prevLink?.toBeginVec) {
-      const prevLinkToBeginHeading = this.positivizeAngle(
+      const prevLinkToBeginHeading = positivizeAngle(
         this.prevLink.toBeginVec.heading()
       );
       const {
@@ -95,43 +97,29 @@ class Link {
         to: angleConstraintTo,
         dir: angleConstraintDir,
       } = this.angleConstraint;
-      const angleFrom = this.positivizeAngle(
+      const angleFrom = positivizeAngle(
         prevLinkToBeginHeading + angleConstraintFrom
       );
-      const angleTo = this.positivizeAngle(
+      const angleTo = positivizeAngle(
         prevLinkToBeginHeading + angleConstraintTo
       );
       fill(0, 255, 255, 64);
       noStroke();
-      if (angleConstraintDir === "cw") {
-        arc(
-          this.beginNode.pos.x,
-          this.beginNode.pos.y,
-          50,
-          50,
-          angleFrom,
-          angleTo
-        );
+      if (angleConstraintDir === 'cw') {
+        arc(this.head.pos.x, this.head.pos.y, 50, 50, angleFrom, angleTo);
       } else {
-        arc(
-          this.beginNode.pos.x,
-          this.beginNode.pos.y,
-          50,
-          50,
-          angleTo,
-          angleFrom
-        );
+        arc(this.head.pos.x, this.head.pos.y, 50, 50, angleTo, angleFrom);
       }
-      fill("black");
+      fill('black');
       circle(
-        this.beginNode.pos.x + Math.cos(angleFrom) * 25,
-        this.beginNode.pos.y + Math.sin(angleFrom) * 25,
+        this.head.pos.x + Math.cos(angleFrom) * 25,
+        this.head.pos.y + Math.sin(angleFrom) * 25,
         10
       );
-      fill("white");
+      fill('white');
       circle(
-        this.beginNode.pos.x + Math.cos(angleTo) * 25,
-        this.beginNode.pos.y + Math.sin(angleTo) * 25,
+        this.head.pos.x + Math.cos(angleTo) * 25,
+        this.head.pos.y + Math.sin(angleTo) * 25,
         10
       );
     }

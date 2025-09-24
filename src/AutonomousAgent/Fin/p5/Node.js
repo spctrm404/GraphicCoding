@@ -1,15 +1,15 @@
 class Node {
   pos = createVector(0, 0);
-  fill;
+  colour;
 
   constructor(x, y, options) {
     this.pos.set(x, y);
-    this.fill = options?.fill || color(255);
+    this.colour = options?.colour || color(255);
   }
 
   show() {
     push();
-    stroke(this.fill);
+    stroke(this.colour);
     noFill();
     circle(this.pos.x, this.pos.y, 10);
     pop();

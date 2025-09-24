@@ -4,12 +4,12 @@ class Links {
   head;
   tail;
   constructor(x, y, cnt = 2, distConstraint = 20, angleConstraint = null) {
-    this.head = new Node(x, y, { fill: color(255, 0, 0) });
+    this.head = new Node(x, y, { colour: color(255, 0, 0) });
     this.nodes.push(this.head);
     for (let n = 1; n < cnt; n++) {
       const prevNode = this.nodes[n - 1];
       const newNode = new Node(x, prevNode.pos.y + distConstraint, {
-        fill: color(255 * (1 - n / (cnt - 1)), (255 * n) / (cnt - 1), 0),
+        colour: color(255 * (1 - n / (cnt - 1)), (255 * n) / (cnt - 1), 0),
       });
       this.nodes.push(newNode);
       this.links.push(
@@ -17,9 +17,8 @@ class Links {
       );
     }
     this.links.forEach((aLink, idx) => {
-      aLink.prevLink = idx !== 0 ? this.links[idx - 1] : null;
-      aLink.nextLink =
-        idx !== this.links.length - 1 ? this.links[idx + 1] : null;
+      aLink.prevLink = idx !== 0 && this.links[idx - 1];
+      aLink.nextLink = idx !== this.links.length - 1 && this.links[idx + 1];
     });
     this.tail = this.nodes[this.nodes.length - 1];
   }

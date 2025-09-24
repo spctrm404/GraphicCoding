@@ -5,9 +5,9 @@ function setup() {
   createCanvas(400, 300);
 
   body = new Links(width / 2, height / 2, 15, 30, {
-    from: (180 / 180) * Math.PI,
-    to: (270 / 180) * Math.PI,
-    dir: "cw",
+    from: (150 / 180) * Math.PI,
+    to: (210 / 180) * Math.PI,
+    dir: 'cw',
   });
 
   mouse = createVector(0, 0);
