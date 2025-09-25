@@ -66,6 +66,8 @@ class Links {
 
     if (usedIdx === 0) this.head = node;
     if (usedIdx === this.nodes.length - 1) this.tail = node;
+
+    this.length += distConstraint;
   }
 
   moveHead(x, y) {
