@@ -8,6 +8,9 @@ function setup() {
 }
 
 function draw() {
+  if (mouseIsPressed) {
+    target.set(mouseX, mouseY);
+  }
   background(0);
   fill(255, 0, 0);
   noStroke();
@@ -15,8 +18,4 @@ function draw() {
   vehicle.seek(target);
   vehicle.update();
   vehicle.show();
-}
-
-function mousePressed() {
-  target.set(mouseX, mouseY);
 }

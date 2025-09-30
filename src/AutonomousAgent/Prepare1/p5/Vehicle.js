@@ -1,11 +1,18 @@
 class Vehicle {
-  constructor(x, y, maxspeed = 8, maxforce = 0.2) {
+  constructor(
+    x,
+    y,
+    maxSpeed = 10,
+    maxForce = 0.8,
+    maxAngle = Math.PI * (30 / 360)
+  ) {
     this.pos = createVector(x, y);
     this.vel = createVector(0, 0);
     this.acc = createVector(0, 0);
-    this.r = 6.0;
-    this.maxSpeed = maxspeed;
-    this.maxForce = maxforce;
+    this.r = 25;
+    this.maxSpeed = maxSpeed;
+    this.maxForce = maxForce;
+    this.maxAngle = maxAngle;
   }
 
   update() {
@@ -35,9 +42,15 @@ class Vehicle {
     translate(this.pos.x, this.pos.y);
     rotate(angle);
     beginShape();
-    vertex(this.r * 2, 0);
-    vertex(-this.r * 2, -this.r);
-    vertex(-this.r * 2, this.r);
+    vertex(0, 0);
+    vertex(
+      -this.r + this.r * Math.cos(radians(-120)),
+      this.r * Math.sin(radians(-120))
+    );
+    vertex(
+      -this.r + this.r * Math.cos(radians(120)),
+      this.r * Math.sin(radians(120))
+    );
     endShape(CLOSE);
     pop();
   }
