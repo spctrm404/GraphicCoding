@@ -2,9 +2,9 @@ class Vehicle {
   constructor(
     x,
     y,
-    maxSpeed = 10,
-    maxForce = 0.8,
-    maxAngle = Math.PI * (30 / 360)
+    maxSpeed = 5,
+    maxForce = 1,
+    maxAngle = Math.PI * (15 / 180)
   ) {
     this.pos = createVector(x, y);
     this.vel = createVector(0, 0);
@@ -16,7 +16,13 @@ class Vehicle {
   }
 
   update() {
+    const prevVel = this.vel.copy();
     this.vel.add(this.acc);
+    const angleDiff = p5.Vector.angleBetween(prevVel, this.vel);
+    if (Math.abs(angleDiff) > this.maxAngle) {
+      prevVel.rotate(angleDiff > 0 ? this.maxAngle : -this.maxAngle);
+      this.vel = prevVel;
+    }
     this.vel.limit(this.maxSpeed);
     this.pos.add(this.vel);
     this.acc.mult(0);
@@ -27,6 +33,8 @@ class Vehicle {
   }
 
   seek(target) {
+    const distance = p5.Vector.dist(this.pos, target);
+    const normalized = distance / this.decRad;
     const desiredVec = p5.Vector.sub(target, this.pos);
     desiredVec.setMag(this.maxSpeed);
     const steerVec = p5.Vector.sub(desiredVec, this.vel);
@@ -36,8 +44,7 @@ class Vehicle {
 
   show() {
     const angle = this.vel.heading();
-    fill(127);
-    stroke(0);
+    fill(255);
     push();
     translate(this.pos.x, this.pos.y);
     rotate(angle);
