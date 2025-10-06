@@ -1,29 +1,41 @@
 const vehicles = [];
+let randomSeedNum = 0;
+const vehicleOptions = {
+  colour: '#FFFFFF',
+  maxSpeed: 2,
+  maxForce: 0.1,
+};
 
 function setup() {
   createCanvas(800, 600);
 
-  for (let n = 0; n < 10; n++) {
-    vehicles.push(
-      new Vehicle(random(width), random(height), {
-        colour: '#FFFFFF',
-        maxSpeed: 5,
-        maxForce: 1,
-        maxAngle: Math.PI * (15 / 180),
-      })
+  randomSeed(randomSeedNum);
+  for (let n = 0; n < 50; n++) {
+    const newVehicle = new Vehicle(
+      random(width),
+      random(height),
+      vehicleOptions
     );
+    const maxAttempts = 100;
+    for (
+      let attempts = 0;
+      vehicles.some((v) => v.isColliding(newVehicle)) && attempts < maxAttempts;
+      attempts++
+    ) {
+      newVehicle.pos.set(random(width), random(height));
+    }
+    vehicles.push(newVehicle);
   }
 }
 
 function draw() {
   if (mouseIsPressed) {
     vehicles.push(
-      new Vehicle(mouseX + random(-0.5, 0.5), mouseY + random(-0.5, 0.5), {
-        colour: '#FFFFFF',
-        maxSpeed: 5,
-        maxForce: 1,
-        maxAngle: Math.PI * (15 / 180),
-      })
+      new Vehicle(
+        mouseX + random(-0.5, 0.5),
+        mouseY + random(-0.5, 0.5),
+        vehicleOptions
+      )
     );
   }
 
@@ -34,5 +46,6 @@ function draw() {
     v.update();
     v.wrapCoordinate();
     v.show();
+    v.showBoundary();
   });
 }

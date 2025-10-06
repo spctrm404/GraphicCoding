@@ -18,4 +18,5 @@ function draw() {
   vehicle.arrive(target);
   vehicle.update();
   vehicle.show();
+  vehicle.showDecRad();
 }

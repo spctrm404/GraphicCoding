@@ -1,39 +1,58 @@
+const pursuers = [];
+const evaders = [];
 const vehicles = [];
+let randomSeedNum = 0;
 
 function setup() {
   createCanvas(800, 600);
-  vehicles.push(
-    new Vehicle(width / 2 - 50, height / 2, {
+
+  randomSeed(randomSeedNum);
+  for (let n = 0; n < 3; n++) {
+    const newPursuer = new Vehicle(random(width), random(height), {
       colour: '#FF0000',
-      maxSpeed: 3,
-      maxSeekForce: 1,
-      maxFleeForce: 2,
-      maxAngle: Math.PI * (5 / 180),
-      fleeSenseRad: 50,
-    })
-  );
-  vehicles.push(
-    new Vehicle(width / 2 + 50, height / 2, {
-      colour: '#00FF00',
-      maxSpeed: 10,
-      maxSeekForce: 1,
-      maxFleeForce: 2,
-      maxAngle: Math.PI * (5 / 180),
-      fleeSenseRad: 200,
-    })
-  );
+      maxSpeed: 2.1,
+      maxForce: 0.1,
+      senseRad: 60,
+    });
+    newPursuer.randomizeVelocity();
+    pursuers.push(newPursuer);
+  }
+
+  for (let n = 0; n < 10; n++) {
+    evaders.push(
+      new Vehicle(random(width), random(height), {
+        colour: '#00FF00',
+        maxSpeed: 2,
+        maxForce: 1,
+        senseRad: 50,
+      })
+    );
+  }
+
+  vehicles.push(...pursuers, ...evaders);
 }
 
 function draw() {
   background(0);
 
-  vehicles[0].pursue(vehicles[1]);
-  vehicles[0].update();
-  vehicles[1].evade(vehicles[0]);
-  vehicles[1].update();
-  vehicles.forEach((v, idx) => {
+  pursuers.forEach((p) => {
+    const target = p.findTarget(evaders);
+    if (target) {
+      p.pursue(target);
+    }
+  });
+
+  evaders.forEach((e) => {
+    const target = e.findTarget(pursuers);
+    if (target) {
+      e.evade(target);
+    }
+  });
+
+  vehicles.forEach((v) => {
+    v.update();
     v.wrapCoordinate();
     v.show();
+    v.showSenseRad();
   });
-  vehicles[1].showSenseRad();
 }

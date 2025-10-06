@@ -3,7 +3,7 @@ let target;
 
 function setup() {
   createCanvas(800, 600);
-  vehicle = new Vehicle(width / 2, height / 2);
+  vehicle = new Vehicle(width / 2, height / 2, 5, 0.05);
   target = createVector(mouseX, mouseY);
 }
 

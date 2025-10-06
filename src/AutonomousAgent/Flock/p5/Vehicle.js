@@ -7,6 +7,7 @@ class Vehicle {
       colour: '#FFFFFF',
       maxSpeed: 5,
       maxForce: 1,
+      neighborDist: 50,
     }
   ) {
     this.pos = createVector(x, y);
@@ -16,6 +17,7 @@ class Vehicle {
     this.colour = options?.colour || '#FFFFFF';
     this.maxSpeed = options?.maxSpeed || 5;
     this.maxForce = options?.maxForce || 1;
+    this.neighborDist = options?.neighborDist || 50;
   }
 
   randomizeVelocity() {
@@ -34,15 +36,15 @@ class Vehicle {
     this.acc.add(force);
   }
 
-  seek(target) {
+  seek(target, factor = 1) {
     const desired = p5.Vector.sub(target, this.pos);
     desired.setMag(this.maxSpeed);
     const steering = p5.Vector.sub(desired, this.vel);
     steering.limit(this.maxForce);
-    this.applyForce(steering);
+    this.applyForce(steering.mult(factor));
   }
 
-  separate(vehicles) {
+  separate(vehicles, factor = 1) {
     const desiredSeparation = this.r * 2;
     const sumTowardMeVec = createVector(0, 0);
     let count = 0;
@@ -62,9 +64,56 @@ class Vehicle {
       // desired.setMag(this.maxSpeed);
       // const steering = p5.Vector.sub(desired, this.vel);
       // steering.limit(this.maxForce);
-      // this.applyForce(steering);
+      // this.applyForce(steering.mult(factor));
       const target = p5.Vector.div(sumTowardMeVec, count).add(this.pos);
-      this.seek(target);
+      this.seek(target, factor);
+    }
+  }
+
+  align(vehicles, factor = 1) {
+    const sumNeighborVel = createVector(0, 0);
+    let count = 0;
+    for (const other of vehicles) {
+      if (other !== this) {
+        const d = p5.Vector.dist(this.pos, other.pos);
+        if (d && d < this.neighborDist) {
+          sumNeighborVel.add(other.vel);
+          count++;
+        }
+      }
+    }
+    if (count > 0) {
+      // const desired = p5.Vector.div(sumNeighborVel, count);
+      // desired.setMag(this.maxSpeed);
+      // const steering = p5.Vector.sub(desired, this.vel);
+      // steering.limit(this.maxForce);
+      // this.applyForce(steering.mult(factor));
+      const target = p5.Vector.div(sumNeighborVel, count).add(this.pos);
+      this.seek(target, factor);
+    }
+  }
+
+  cohere(vehicles, factor = 1) {
+    const sumNeighborPos = createVector(0, 0);
+    let count = 0;
+    for (const other of vehicles) {
+      if (other !== this) {
+        const d = p5.Vector.dist(this.pos, other.pos);
+        if (d && d < this.neighborDist) {
+          sumNeighborPos.add(other.pos);
+          count++;
+        }
+      }
+    }
+    if (count > 0) {
+      // const target = p5.Vector.div(sumNeighborPos, count);
+      // const desired = p5.Vector.sub(target, this.pos);
+      // desired.setMag(this.maxSpeed);
+      // const steering = p5.Vector.sub(desired, this.vel);
+      // steering.limit(this.maxForce);
+      // this.applyForce(steering.mult(factor));
+      const target = p5.Vector.div(sumNeighborPos, count);
+      this.seek(target, factor);
     }
   }
 
@@ -104,6 +153,18 @@ class Vehicle {
     stroke(this.colour);
     strokeWeight(1);
     circle(0, 0, this.r * 2);
+    pop();
+  }
+
+  showNeighborDist() {
+    const angle = this.vel.heading();
+    push();
+    translate(this.pos.x, this.pos.y);
+    rotate(angle);
+    noFill();
+    stroke(this.colour);
+    strokeWeight(1);
+    circle(0, 0, this.neighborDist * 2);
     pop();
   }
 }
