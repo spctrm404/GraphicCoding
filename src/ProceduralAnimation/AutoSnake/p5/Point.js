@@ -2,7 +2,7 @@ class Point {
   constructor(x, y, options) {
     this.pos = createVector(x, y);
     this.r = options.r || 10;
-    this.colour = options.colour || "#FFF";
+    this.colour = options.colour || '#FFF';
     this.distConstraint = options.distConstraint || 50;
     this.heading = 0;
     this.bodyThickness = options.bodyThickness || 20;
@@ -45,13 +45,13 @@ class Point {
   angleConstrainedBy(parent, grandParent) {
     const parentToGrandParent = p5.Vector.sub(grandParent.pos, parent.pos);
     const parentToMe = p5.Vector.sub(this.pos, parent.pos);
-    let angleBetween = p5.Vector.angleBetween(parentToMe, parentToGrandParent);
-    angleBetween = angleBetween < 0 ? angleBetween + 2 * Math.PI : angleBetween;
+    let angle = p5.Vector.angleBetween(parentToMe, parentToGrandParent);
+    angle = angle < 0 ? angle + 2 * Math.PI : angle;
     let [minAngle, maxAngle] = this.angleConstraints;
     if (minAngle < 0) minAngle += 2 * Math.PI;
     if (maxAngle < 0) maxAngle += 2 * Math.PI;
-    if (angleBetween < minAngle || angleBetween > maxAngle) {
-      const rotAngle = angleBetween < minAngle ? -minAngle : -maxAngle;
+    if (angle < minAngle || angle > maxAngle) {
+      const rotAngle = angle < minAngle ? -minAngle : -maxAngle;
       parentToGrandParent.rotate(rotAngle);
       this.setPos(
         p5.Vector.add(
