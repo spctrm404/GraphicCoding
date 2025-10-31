@@ -1,0 +1,16 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+div {
+  padding-inline: 24px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+h1 {
+}
